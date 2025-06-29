@@ -38,5 +38,5 @@ flutter run
 <img src="https://github.com/user-attachments/assets/99f667ad-ef31-4a47-8293-d5c3f2783ca8" alt="Login (Light)" width="200"/>
 
 ### Home Menu
-<img src="https://github.com/user-attachments/assets/7300d1ed-f8cd-45de-8f1e-39321b302b39" alt="drawing" width="200"/>
-<img src="https://github.com/user-attachments/assets/66fa5447-4890-4fc9-9b63-425538df6468" alt="drawing" width="200"/>
+<img src="https://github.com/user-attachments/assets/7300d1ed-f8cd-45de-8f1e-39321b302b39" alt="Homepage" width="200"/>
+<img src="https://github.com/user-attachments/assets/66fa5447-4890-4fc9-9b63-425538df6468" alt="Log" width="200"/>
