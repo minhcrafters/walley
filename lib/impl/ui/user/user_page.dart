@@ -18,7 +18,6 @@ class UserPage extends StatelessWidget implements AbstractWalleyPage {
           return const Center(child: CircularProgressIndicator());
         }
         final user = snapshot.data;
-        final email = user?['email'] ?? '';
         final name = user?['name'] ?? '';
         return Scaffold(
           appBar: AppBar(

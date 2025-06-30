@@ -26,7 +26,6 @@ class _HomePageState extends State<HomePage> {
           return const Center(child: CircularProgressIndicator());
         }
         final user = snapshot.data;
-        final email = user?['email'] ?? '';
         final name = user?['name'] ?? '';
         return SingleChildScrollView(
           padding: const EdgeInsets.all(15),
@@ -66,7 +65,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     const BalanceWidget(),
                     const SizedBox(width: 15),
-                    TotalSpentWidget(email: email),
+                    TotalSpentWidget(),
                   ],
                 ),
               ),

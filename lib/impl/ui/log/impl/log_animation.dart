@@ -37,7 +37,6 @@ class _LogAnimationState extends State<LogAnimation>
     widget.entrySubmitted = false;
     UserUtil.modifyJsonDocument(
       "spendingHistory",
-      DateTime.now().toString(),
       (oldValue) => {
         "type": "expend",
         "amount": widget.moneyAmount.toString(),
@@ -83,8 +82,7 @@ class _LogAnimationState extends State<LogAnimation>
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      // TODO: pass the email from auth
-      future: UserUtil.modifyBalance("user@example.com", widget.moneyAmount!),
+      future: UserUtil.modifyBalance(widget.moneyAmount!),
       builder: (_, balanceModification) {
         bool isConnectionPending = (!widget.entrySubmitted ||
             balanceModification.connectionState != ConnectionState.done ||

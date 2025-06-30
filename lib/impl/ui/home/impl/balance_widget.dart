@@ -22,8 +22,6 @@ class _BalanceWidgetState extends State<BalanceWidget> {
         if (snapshot.connectionState != ConnectionState.done || snapshot.data == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        final user = snapshot.data;
-        final email = user?['email'] ?? '';
         return Expanded(
           child: Container(
             padding: const EdgeInsets.all(12),
@@ -47,7 +45,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
                   height: 1,
                 ),
                 FutureBuilder(
-                  future: UserUtil.readOrCreateField(email, "balance", 0),
+                  future: UserUtil.readOrCreateField("balance", 0),
                   builder: (_, AsyncSnapshot snapshot) {
                     if (snapshot.hasError ||
                         snapshot.connectionState != ConnectionState.done ||
@@ -102,7 +100,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
                   height: 1,
                 ),
                 FutureBuilder(
-                  future: UserUtil.readOrCreateField(email, "savings", 0),
+                  future: UserUtil.readOrCreateField("savings", 0),
                   builder: (_, AsyncSnapshot snapshot) => Expanded(
                     flex: 4,
                     child: FittedBox(

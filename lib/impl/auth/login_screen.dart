@@ -40,6 +40,9 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         final data = response.data;
         if (response.statusCode == 200) {
+          // Store token and set up Dio
+          UserUtil.sessionToken = data['token'];
+          UserUtil.setupDio();
           if (mounted) {
             NavigationUtil.navigateToWithoutBack(const RootPage(), context);
           }

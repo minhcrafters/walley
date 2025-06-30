@@ -8,7 +8,7 @@ import 'package:walley/util/user_util.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await UserDefaultsUtil.initialize();
-  setupDio();
+  UserUtil.setupDio();
 
   runApp(const Walley());
 }

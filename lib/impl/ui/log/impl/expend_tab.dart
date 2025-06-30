@@ -78,9 +78,6 @@ class _ExpendTabState extends State<ExpendTab> {
             snapshot.data == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        final user = snapshot.data;
-        final email = user?['email'] ?? '';
-
         return SingleChildScrollView(
           padding: const EdgeInsets.all(15),
           child: Column(
@@ -141,7 +138,7 @@ class _ExpendTabState extends State<ExpendTab> {
                 child: Form(
                   key: form,
                   child: FutureBuilder(
-                    future: UserUtil.readField(email, "balance"),
+                    future: UserUtil.readField("balance"),
                     builder: (_, AsyncSnapshot snapshot) {
                       int? parsedValue = tryParsingMoneyValueFromRawText();
                       bool error =
@@ -268,7 +265,8 @@ class _ExpendTabState extends State<ExpendTab> {
                               return LogAnimation(
                                 category: category,
                                 notes: _notesFieldController.text,
-                                moneyAmount: -tryParsingMoneyValueFromRawText()!,
+                                moneyAmount:
+                                    -tryParsingMoneyValueFromRawText()!,
                               );
                             },
                           );

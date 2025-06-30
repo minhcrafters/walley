@@ -1,33 +1,48 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:cookie_jar/cookie_jar.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 final Dio dio = Dio(
   BaseOptions(
     baseUrl: 'http://localhost:5000',
-    // You may want to set connectTimeout, receiveTimeout, etc.
-    // headers: {'Content-Type': 'application/json'},
   ),
 );
-final CookieJar cookieJar = CookieJar();
-void setupDio() {
-  if (!kIsWeb) {
-    dio.interceptors.add(CookieManager(cookieJar));
-  } else {
-    // On web, ensure cookies are sent with requests
-    dio.options.extra['withCredentials'] = true;
-  }
-}
 
-// Call setupDio() once in your app initialization (e.g., main())
-
-/// A utility class for retrieving user documents from Firestore.
 class UserUtil {
-  static Future<Map<String, dynamic>?> getUserDocuments(String email) async {
-    final response = await dio.get('/user', queryParameters: {'email': email});
+  static String? sessionToken;
+  static Map<String, dynamic>? _cachedSessionUser;
+
+  static void setupDio() {
+    dio.interceptors.clear();
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          if (sessionToken != null) {
+            options.headers['Authorization'] = 'Bearer ${sessionToken!}';
+          }
+          return handler.next(options);
+        },
+      ),
+    );
+  }
+
+  static Future<Map<String, dynamic>?> getSessionUser(
+      {bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedSessionUser != null) return _cachedSessionUser;
+    final response = await dio.get('/session/user');
+    if (response.statusCode == 200) {
+      _cachedSessionUser = response.data;
+      return response.data;
+    }
+    return null;
+  }
+
+  /// A utility class for retrieving user documents from Firestore.
+  static Future<Map<String, dynamic>?> getUserDocuments() async {
+    final user = await getSessionUser();
+    if (user == null || user['email'] == null) return null;
+    final response = await dio.get('/user', queryParameters: {'email': user['email']});
     if (response.statusCode == 200) {
       return response.data;
     }
@@ -40,19 +55,19 @@ class UserUtil {
   ///
   /// Returns a [Future] that completes with the value of the field.
   static Future<dynamic> readOrCreateField(
-    String email,
     String field,
     dynamic defaultValue,
   ) async {
-    final userData = await getUserDocuments(email);
-
+    final userData = await getUserDocuments();
     if (userData != null && userData.containsKey(field)) {
       return userData[field];
     } else {
+      final user = await getSessionUser();
+      if (user == null || user['email'] == null) return defaultValue;
       // Create the field with the default value
       await dio.post(
         '/user/update',
-        data: jsonEncode({'email': email, field: defaultValue}),
+        data: jsonEncode({'email': user['email'], field: defaultValue}),
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
       return defaultValue;
@@ -60,11 +75,9 @@ class UserUtil {
   }
 
   static Future<dynamic> readField(
-    String email,
     String field,
   ) async {
-    final userData = await getUserDocuments(email);
-
+    final userData = await getUserDocuments();
     return userData == null ? null : userData[field];
   }
 
@@ -75,56 +88,57 @@ class UserUtil {
   ///
   /// Returns a [Future] that completes with the modified JSON data.
   static Future<Map<String, dynamic>> modifyJsonDocument(
-    String email,
     String jsonPath,
     Map<String, dynamic> Function(Map<String, dynamic> currentData) modifier,
   ) async {
-    final userData = await getUserDocuments(email);
-
+    final userData = await getUserDocuments();
     if (userData != null && userData.containsKey(jsonPath)) {
       final currentData = userData[jsonPath] as Map<String, dynamic>;
       final modifiedData = modifier(currentData);
+      final user = await getSessionUser();
+      if (user == null || user['email'] == null) return modifiedData;
       await dio.post(
         '/user/update',
-        data: jsonEncode({'email': email, jsonPath: modifiedData}),
+        data: jsonEncode({'email': user['email'], jsonPath: modifiedData}),
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
       return modifiedData;
     } else {
       final emptyData = modifier({});
+      final user = await getSessionUser();
+      if (user == null || user['email'] == null) return emptyData;
       await dio.post(
         '/user/update',
-        data: jsonEncode({'email': email, jsonPath: emptyData}),
+        data: jsonEncode({'email': user['email'], jsonPath: emptyData}),
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
       return emptyData;
     }
   }
 
-  static Future<void> modifyBalance(String email, int amount) async {
-    final userData = await getUserDocuments(email);
-
+  static Future<void> modifyBalance(int amount) async {
+    final userData = await getUserDocuments();
+    final user = await getSessionUser();
+    if (user == null || user['email'] == null) return;
     if (userData != null && userData.containsKey('balance')) {
       final currentBalance = userData['balance'] as int;
       final modifiedBalance = currentBalance + amount;
       await dio.post(
         '/user/update',
-        data: jsonEncode({'email': email, 'balance': modifiedBalance}),
+        data: jsonEncode({'email': user['email'], 'balance': modifiedBalance}),
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
     } else {
       await dio.post(
         '/user/update',
-        data: jsonEncode({'email': email, 'balance': amount}),
+        data: jsonEncode({'email': user['email'], 'balance': amount}),
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
     }
   }
 
-  static Future<Map<String, dynamic>?> fetchLatestTransaction(
-      String email) async {
-    final userData = await getUserDocuments(email);
-
+  static Future<Map<String, dynamic>?> fetchLatestTransaction() async {
+    final userData = await getUserDocuments();
     if (userData != null && userData.containsKey('spendingHistory')) {
       final transactions = userData['spendingHistory'] as Map<String, dynamic>;
       final sortedKeys = transactions.keys.toList()..sort();
@@ -140,9 +154,8 @@ class UserUtil {
     }
   }
 
-  static Future<int> fetchTotalSpent(String email, [DateTime? date]) async {
-    final userData = await getUserDocuments(email);
-
+  static Future<int> fetchTotalSpent([DateTime? date]) async {
+    final userData = await getUserDocuments();
     if (userData != null && userData.containsKey('spendingHistory')) {
       final transactions = userData['spendingHistory'] as Map<String, dynamic>;
       transactions.removeWhere(
@@ -175,9 +188,8 @@ class UserUtil {
     }
   }
 
-  static Future<double> calculateAverageMonthlySpending(String email) async {
-    final userData = await getUserDocuments(email);
-
+  static Future<double> calculateAverageMonthlySpending() async {
+    final userData = await getUserDocuments();
     if (userData != null && userData.containsKey('spendingHistory')) {
       final transactions = userData['spendingHistory'] as Map<String, dynamic>;
       final currentDate = DateTime.now();
@@ -208,18 +220,19 @@ class UserUtil {
     }
   }
 
-  static Future<bool> deleteUser(String email) async {
+  static Future<bool> deleteUser() async {
+    final user = await getSessionUser();
+    if (user == null || user['email'] == null) return false;
     final response = await dio.post(
       '/user/delete',
-      data: jsonEncode({'email': email}),
+      data: jsonEncode({'email': user['email']}),
       options: Options(headers: {'Content-Type': 'application/json'}),
     );
     return response.statusCode == 200;
   }
 
   static Future<Map<String, dynamic>?> getUserById(int id) async {
-    final response =
-        await dio.get('/user/get_by_id', queryParameters: {'id': id});
+    final response = await dio.get('/user/get_by_id', queryParameters: {'id': id});
     if (response.statusCode == 200) {
       return response.data;
     }
@@ -247,40 +260,20 @@ class UserUtil {
   }
 
   static Future<Map<String, dynamic>?> getTransactionById(int id) async {
-    final response =
-        await dio.get('/transaction/get', queryParameters: {'id': id});
+    final response = await dio.get('/transaction/get', queryParameters: {'id': id});
     if (response.statusCode == 200) {
       return response.data;
     }
     return null;
   }
 
-  static Future<Map<String, dynamic>?> getSummary(String email) async {
-    final response =
-        await dio.get('/summary', queryParameters: {'email': email});
-    if (response.statusCode == 200) {
-      return response.data;
-    }
-    return null;
-  }
-
-  static Future<Map<String, dynamic>?> getSessionUser() async {
-    final response = await dio.get(
-      '/session/user',
-      options: Options(headers: {'Content-Type': 'application/json'}),
-    );
-    if (response.statusCode == 200) {
-      return response.data;
-    }
-    return null;
-  }
-
-  // Example: fetch user data using session (no email needed)
-  static Future<Map<String, dynamic>?> getUserDocumentsFromSession() async {
+  static Future<Map<String, dynamic>?> getSummary() async {
     final user = await getSessionUser();
     if (user == null || user['email'] == null) return null;
-    return getUserDocuments(user['email']);
+    final response = await dio.get('/summary', queryParameters: {'email': user['email']});
+    if (response.statusCode == 200) {
+      return response.data;
+    }
+    return null;
   }
-
-  // You can add similar session-based wrappers for other methods as needed.
 }

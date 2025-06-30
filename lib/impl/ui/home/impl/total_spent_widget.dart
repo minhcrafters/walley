@@ -6,11 +6,7 @@ import 'package:walley/util/user_defaults_util.dart';
 import 'package:walley/util/user_util.dart';
 
 class TotalSpentWidget extends StatelessWidget {
-  final String email;
-  const TotalSpentWidget({
-    super.key,
-    required this.email,
-  });
+  const TotalSpentWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +18,7 @@ class TotalSpentWidget extends StatelessWidget {
           borderRadius: const BorderRadius.all(Radius.circular(12)),
         ),
         child: FutureBuilder(
-          future: UserUtil.fetchTotalSpent(email),
+          future: UserUtil.fetchTotalSpent(),
           builder: (_, todaysTotalSpending) {
             bool fetchingData =
                 todaysTotalSpending.connectionState != ConnectionState.done ||
@@ -44,7 +40,6 @@ class TotalSpentWidget extends StatelessWidget {
                     ),
                     FutureBuilder(
                       future: UserUtil.fetchTotalSpent(
-                        email,
                         DateTime.now().subtract(
                           const Duration(days: 1),
                         ),
@@ -140,7 +135,7 @@ class TotalSpentWidget extends StatelessWidget {
                                     maxLines: 1,
                                     softWrap: false,
                                     overflow: TextOverflow.fade,
-                                    "${percentage.round()}%",
+                                    "$percentage%",
                                     style: TextStyle(
                                       fontFamily: "SF Pro Display",
                                       fontWeight: FontWeight.w600,
@@ -167,8 +162,6 @@ class TotalSpentWidget extends StatelessWidget {
                                     0)
                                 .toString(),
                             style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 28,
                               height: 0,
                             ),
                           ),
@@ -182,12 +175,9 @@ class TotalSpentWidget extends StatelessWidget {
                         builder: (_, __) => Expanded(
                           flex: 10,
                           child: FittedBox(
-                            fit: BoxFit.contain,
                             child: Text(
                               "${FinanceUtil.vnd.format(todaysTotalSpending.data)}₫",
                               style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 28,
                                 height: 0,
                               ),
                             ),
@@ -208,7 +198,7 @@ class TotalSpentWidget extends StatelessWidget {
                       color: Theme.of(context).hintColor.withAlpha(120),
                     ),
                     FutureBuilder(
-                      future: UserUtil.fetchLatestTransaction(email),
+                      future: UserUtil.fetchLatestTransaction(),
                       builder: (_, data) {
                         bool fetchingData =
                             data.connectionState != ConnectionState.done ||
@@ -269,10 +259,6 @@ class TotalSpentWidget extends StatelessWidget {
                       },
                     ),
                   ],
-                ),
-                const Expanded(
-                  flex: 1,
-                  child: SizedBox.shrink(),
                 ),
               ],
             );

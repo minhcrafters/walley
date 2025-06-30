@@ -1,23 +1,29 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+import secrets
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-app.secret_key = "bruhbrubjidsfhajlksdghksdlfuladsfiuhgahsuldjif"
 
-app.config.update(
-    SESSION_COOKIE_SAMESITE="None",
-    SESSION_COOKIE_SECURE=False,
-)
+# In-memory session token store: token -> user info
+token_store = {}
 
 
 def get_db_connection():
     conn = sqlite3.connect("walley.db")
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def get_user_from_token():
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+        return token_store.get(token)
+    return None
 
 
 @app.route("/register", methods=["POST"])
@@ -54,22 +60,36 @@ def login():
     user = cur.fetchone()
     conn.close()
     if user and check_password_hash(user["password"], password):
-        session["user"] = {"email": user["email"], "name": user["name"], "id": user["id"]}
+        token = secrets.token_urlsafe(32)
+        user_info = {"email": user["email"], "name": user["name"], "id": user["id"]}
+        token_store[token] = user_info
         return jsonify(
-            {"message": "Login successful", "name": user["name"], "email": user["email"]}
+            {
+                "message": "Login successful",
+                "name": user["name"],
+                "email": user["email"],
+                "token": token,
+            }
         )
     return jsonify({"error": "Invalid credentials"}), 401
 
 
 @app.route("/logout", methods=["POST"])
 def logout():
-    session.pop("user", None)
+    user = get_user_from_token()
+    if not user:
+        return jsonify({"error": "Not logged in"}), 401
+    # Remove token from store
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+        token_store.pop(token, None)
     return jsonify({"message": "Logged out"})
 
 
 @app.route("/session/user", methods=["GET"])
 def get_session_user():
-    user = session.get("user")
+    user = get_user_from_token()
     if not user:
         return jsonify({"error": "Not logged in"}), 401
     return jsonify(user)
@@ -77,9 +97,10 @@ def get_session_user():
 
 @app.route("/user", methods=["GET"])
 def get_user():
-    email = request.args.get("email")
-    if not email:
-        return jsonify({"error": "Missing email"}), 400
+    user = get_user_from_token()
+    if not user:
+        return jsonify({"error": "Not logged in"}), 401
+    email = request.args.get("email") or user["email"]
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM users WHERE email = ?", (email,))
@@ -97,6 +118,9 @@ def get_user():
 
 @app.route("/user/update", methods=["POST"])
 def update_user():
+    user = get_user_from_token()
+    if not user:
+        return jsonify({"error": "Not logged in"}), 401
     data = request.get_json()
     email = data.get("email")
     if not email:
@@ -116,6 +140,9 @@ def update_user():
 
 @app.route("/transaction/add", methods=["POST"])
 def add_transaction():
+    user = get_user_from_token()
+    if not user:
+        return jsonify({"error": "Not logged in"}), 401
     data = request.get_json()
     email = data.get("email")
     amount = data.get("amount")
@@ -138,9 +165,10 @@ def add_transaction():
 
 @app.route("/transaction/history", methods=["GET"])
 def transaction_history():
-    email = request.args.get("email")
-    if not email:
-        return jsonify({"error": "Missing email"}), 400
+    user = get_user_from_token()
+    if not user:
+        return jsonify({"error": "Not logged in"}), 401
+    email = user["email"]
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM transactions WHERE user_email = ? ORDER BY date", (email,))
@@ -151,6 +179,9 @@ def transaction_history():
 
 @app.route("/user/delete", methods=["POST"])
 def delete_user():
+    user = get_user_from_token()
+    if not user:
+        return jsonify({"error": "Not logged in"}), 401
     data = request.get_json()
     email = data.get("email")
     if not email:
@@ -166,6 +197,9 @@ def delete_user():
 
 @app.route("/transaction/delete", methods=["POST"])
 def delete_transaction():
+    user = get_user_from_token()
+    if not user:
+        return jsonify({"error": "Not logged in"}), 401
     data = request.get_json()
     tid = data.get("id")
     if not tid:
@@ -180,6 +214,9 @@ def delete_transaction():
 
 @app.route("/transaction/update", methods=["POST"])
 def update_transaction():
+    user = get_user_from_token()
+    if not user:
+        return jsonify({"error": "Not logged in"}), 401
     data = request.get_json()
     tid = data.get("id")
     fields = {k: v for k, v in data.items() if k != "id"}
@@ -197,6 +234,9 @@ def update_transaction():
 
 @app.route("/transaction/get", methods=["GET"])
 def get_transaction():
+    user = get_user_from_token()
+    if not user:
+        return jsonify({"error": "Not logged in"}), 401
     tid = request.args.get("id")
     if not tid:
         return jsonify({"error": "Missing transaction id"}), 400
@@ -212,6 +252,9 @@ def get_transaction():
 
 @app.route("/user/get_by_id", methods=["GET"])
 def get_user_by_id():
+    user = get_user_from_token()
+    if not user:
+        return jsonify({"error": "Not logged in"}), 401
     uid = request.args.get("id")
     if not uid:
         return jsonify({"error": "Missing user id"}), 400
@@ -227,9 +270,10 @@ def get_user_by_id():
 
 @app.route("/summary", methods=["GET"])
 def get_summary():
-    email = request.args.get("email")
-    if not email:
-        return jsonify({"error": "Missing email"}), 400
+    user = get_user_from_token()
+    if not user:
+        return jsonify({"error": "Not logged in"}), 401
+    email = user["email"]
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute(
