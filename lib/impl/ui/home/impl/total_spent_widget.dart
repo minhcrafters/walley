@@ -6,8 +6,10 @@ import 'package:walley/util/user_defaults_util.dart';
 import 'package:walley/util/user_util.dart';
 
 class TotalSpentWidget extends StatelessWidget {
+  final String email;
   const TotalSpentWidget({
     super.key,
+    required this.email,
   });
 
   @override
@@ -20,7 +22,7 @@ class TotalSpentWidget extends StatelessWidget {
           borderRadius: const BorderRadius.all(Radius.circular(12)),
         ),
         child: FutureBuilder(
-          future: UserUtil.fetchTotalSpent(),
+          future: UserUtil.fetchTotalSpent(email),
           builder: (_, todaysTotalSpending) {
             bool fetchingData =
                 todaysTotalSpending.connectionState != ConnectionState.done ||
@@ -42,9 +44,10 @@ class TotalSpentWidget extends StatelessWidget {
                     ),
                     FutureBuilder(
                       future: UserUtil.fetchTotalSpent(
+                        email,
                         DateTime.now().subtract(
                           const Duration(days: 1),
-                        ), // fetch yesterday's spending data,
+                        ),
                       ),
                       builder: (_, yesterdaysTotalSpending) {
                         bool fetchingData =
@@ -52,8 +55,7 @@ class TotalSpentWidget extends StatelessWidget {
                                     ConnectionState.done ||
                                 yesterdaysTotalSpending.hasError ||
                                 yesterdaysTotalSpending.data == null ||
-                                todaysTotalSpending.data == null ||
-                                yesterdaysTotalSpending.data!.isNaN;
+                                todaysTotalSpending.data == null;
 
                         bool? cachedComparisonPositive = UserDefaultsUtil
                             .preferences!
@@ -64,8 +66,7 @@ class TotalSpentWidget extends StatelessWidget {
 
                         if (cachedComparisonPositive == null ||
                             cachedComparisonValue == "0%") {
-                          return const SizedBox
-                              .shrink(); // Returns empty widget if there is no data recorded in cache
+                          return const SizedBox.shrink();
                         }
 
                         if (fetchingData) {
@@ -97,45 +98,29 @@ class TotalSpentWidget extends StatelessWidget {
                           );
                         }
 
-                        bool isTodaysSpendingHigher =
-                            todaysTotalSpending.data! >
-                                yesterdaysTotalSpending.data!;
+                        final today = (todaysTotalSpending.data ?? 0) as num;
+                        final yesterday =
+                            (yesterdaysTotalSpending.data ?? 0) as num;
+                        bool isTodaysSpendingHigher = today > yesterday;
                         double calculatePercentage() {
-                          if (todaysTotalSpending.data == null ||
-                              todaysTotalSpending.data!.isNaN ||
-                              todaysTotalSpending.data! == 0 ||
-                              yesterdaysTotalSpending.data == null ||
-                              yesterdaysTotalSpending.data!.isNaN ||
-                              yesterdaysTotalSpending.data! == 0) {
-                            return 0;
-                          }
-
+                          if (today == 0 || yesterday == 0) return 0;
                           return isTodaysSpendingHigher
-                              ? (todaysTotalSpending.data! /
-                                  yesterdaysTotalSpending.data! *
-                                  100)
-                              : (yesterdaysTotalSpending.data! /
-                                  todaysTotalSpending.data! *
-                                  100);
+                              ? (today / yesterday * 100)
+                              : (yesterday / today * 100);
                         }
 
                         double percentage = calculatePercentage();
-
                         if (percentage == 0) {
-                          return const SizedBox
-                              .shrink(); // returns empty widget if there is no comparison data
+                          return const SizedBox.shrink();
                         }
-
                         UserDefaultsUtil.preferences!.setString(
                           "totalSpentYesterdayComparisonValue",
                           "${percentage.round()}%",
                         );
-
                         UserDefaultsUtil.preferences!.setBool(
                           "totalSpentYesterdayComparisonPositive",
                           isTodaysSpendingHigher,
                         );
-
                         return Row(
                           children: [
                             percentage == 0
@@ -223,12 +208,11 @@ class TotalSpentWidget extends StatelessWidget {
                       color: Theme.of(context).hintColor.withAlpha(120),
                     ),
                     FutureBuilder(
-                      future: UserUtil.fetchLatestTransaction(),
+                      future: UserUtil.fetchLatestTransaction(email),
                       builder: (_, data) {
                         bool fetchingData =
                             data.connectionState != ConnectionState.done ||
                                 data.data == null;
-
                         if (fetchingData) {
                           return Expanded(
                             child: Text(
@@ -248,16 +232,15 @@ class TotalSpentWidget extends StatelessWidget {
                             ),
                           );
                         }
-
-                        int? rawMoneyValue =
-                            int.tryParse(data.data!['data']['amount']);
-
-                        String time = DateFormat("jm")
-                            .format(DateTime.parse(data.data!['time']));
-
+                        int? rawMoneyValue = int.tryParse(
+                            data.data!["data"]["amount"].toString(),);
+                        String time = "";
+                        try {
+                          time = DateFormat("jm")
+                              .format(DateTime.parse(data.data!["time"]));
+                        } catch (_) {}
                         String displayText =
                             " ${rawMoneyValue == null ? "" : "${FinanceUtil.vnd.format(rawMoneyValue)}₫ at"} $time";
-
                         return FutureBuilder(
                           future: UserDefaultsUtil.preferences!
                               .setString("totalSpentHistoryText", displayText),
@@ -290,7 +273,7 @@ class TotalSpentWidget extends StatelessWidget {
                 const Expanded(
                   flex: 1,
                   child: SizedBox.shrink(),
-                ), // Empty expanded widget to proportionate balance number widget
+                ),
               ],
             );
           },

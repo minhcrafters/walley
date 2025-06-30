@@ -37,14 +37,12 @@ class _LogAnimationState extends State<LogAnimation>
     widget.entrySubmitted = false;
     UserUtil.modifyJsonDocument(
       "spendingHistory",
-      (Map<String, dynamic> currentData) {
-        currentData[DateTime.now().toString()] = {
-          "type": "expend",
-          "amount": widget.moneyAmount.toString(),
-          "category": widget.category,
-          "notes": widget.notes,
-        };
-        return currentData;
+      DateTime.now().toString(),
+      (oldValue) => {
+        "type": "expend",
+        "amount": widget.moneyAmount.toString(),
+        "category": widget.category,
+        "notes": widget.notes,
       },
     ).then((_) => widget.entrySubmitted = true);
 
@@ -85,7 +83,8 @@ class _LogAnimationState extends State<LogAnimation>
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: UserUtil.modifyBalance(widget.moneyAmount!),
+      // TODO: pass the email from auth
+      future: UserUtil.modifyBalance("user@example.com", widget.moneyAmount!),
       builder: (_, balanceModification) {
         bool isConnectionPending = (!widget.entrySubmitted ||
             balanceModification.connectionState != ConnectionState.done ||

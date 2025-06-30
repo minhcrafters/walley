@@ -1,17 +1,14 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:walley/firebase_options.dart';
 import 'package:walley/gobal.dart';
 import 'package:walley/impl/auth/login_screen.dart';
 import 'package:walley/util/color_util.dart';
 import 'package:walley/util/user_defaults_util.dart';
+import 'package:walley/util/user_util.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
   await UserDefaultsUtil.initialize();
+  setupDio();
 
   runApp(const Walley());
 }

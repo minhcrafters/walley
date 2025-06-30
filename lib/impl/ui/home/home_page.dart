@@ -19,61 +19,61 @@ class HomePage extends StatefulWidget implements AbstractWalleyPage {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(15),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Align(
-            alignment: Alignment.topLeft,
-            child: Text(
-              TimeUtil.ofFormat("EEEE, LLLL d"),
-              style: const TextStyle(
-                fontFamily: "SF Pro Display",
-                fontSize: 23,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          FutureBuilder(
-            future: UserUtil.readFromStream(
-              'name',
-            ),
-            builder: (_, AsyncSnapshot data) => Align(
-              alignment: Alignment.topLeft,
-              child: Text(
-                data.connectionState == ConnectionState.done
-                    ? "${data.data}'s Wallet" // New data
-                    : "", // Old (cached) data
-                style: TextStyle(
-                  fontFamily: "SF Pro Display",
-                  fontSize: 19,
-                  fontWeight: FontWeight.w400,
-                  color: Theme.of(context).dividerColor,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 15),
-          Container(
-            constraints: const BoxConstraints(maxHeight: 100),
-            // ignore: prefer_const_constructors
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                BalanceWidget(),
-                SizedBox(
-                  width: 15,
-                ),
-                TotalSpentWidget(),
-              ],
-            ),
-          ),
-          const SizedBox(height: 15),
-          const Row(
+    return FutureBuilder(
+      future: UserUtil.getSessionUser(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done || snapshot.data == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final user = snapshot.data;
+        final email = user?['email'] ?? '';
+        final name = user?['name'] ?? '';
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /*Expanded(
+              Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  TimeUtil.ofFormat("EEEE, LLLL d"),
+                  style: const TextStyle(
+                    fontFamily: "SF Pro Display",
+                    fontSize: 23,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  "$name's Wallet",
+                  style: TextStyle(
+                    fontFamily: "SF Pro Display",
+                    fontSize: 19,
+                    fontWeight: FontWeight.w400,
+                    color: Theme.of(context).dividerColor,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 15),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 100),
+                // ignore: prefer_const_constructors
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const BalanceWidget(),
+                    const SizedBox(width: 15),
+                    TotalSpentWidget(email: email),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 15),
+              const Row(
+                children: [
+                  /*Expanded(
                 child: ElevatedButton(
                   onPressed: () => {},
                   child: const Row(
@@ -114,120 +114,122 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),*/
-            ],
-          ),
-          const SizedBox(
-            height: 15,
-          ),
-          Row(
-            children: [
-              const SizedBox(
-                width: 2,
+                ],
               ),
-              const Column(
+              const SizedBox(
+                height: 15,
+              ),
+              Row(
                 children: [
-                  SizedBox(
-                    height: 1,
+                  const SizedBox(
+                    width: 2,
+                  ),
+                  const Column(
+                    children: [
+                      SizedBox(
+                        height: 1,
+                      ),
+                      Icon(
+                        Iconsax.bookmark,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  const Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      "Lesson Progress",
+                      style: TextStyle(
+                        fontFamily: "SF Pro Display",
+                        fontSize: 23,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 5,
                   ),
                   Icon(
-                    Iconsax.bookmark,
-                    size: 20,
+                    Icons.ios_share,
+                    size: 15,
+                    color: Theme.of(context).hintColor.withAlpha(120),
                   ),
                 ],
               ),
               const SizedBox(
-                width: 8,
+                height: 15,
               ),
-              const Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  "Lesson Progress",
-                  style: TextStyle(
-                    fontFamily: "SF Pro Display",
-                    fontSize: 23,
-                    fontWeight: FontWeight.w600,
-                  ),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 200),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).hoverColor,
+                  borderRadius: const BorderRadius.all(Radius.circular(12)),
                 ),
+                child: const Placeholder(),
               ),
               const SizedBox(
-                width: 5,
+                height: 15,
               ),
-              Icon(
-                Icons.ios_share,
-                size: 15,
-                color: Theme.of(context).hintColor.withAlpha(120),
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 15,
-          ),
-          Container(
-            constraints: const BoxConstraints(maxHeight: 200),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).hoverColor,
-              borderRadius: const BorderRadius.all(Radius.circular(12)),
-            ),
-            child: const Placeholder(),
-          ),
-          const SizedBox(
-            height: 15,
-          ),
-          Row(
-            children: [
-              const SizedBox(
-                width: 2,
-              ),
-              const Column(
+              Row(
                 children: [
-                  SizedBox(
-                    height: 1,
+                  const SizedBox(
+                    width: 2,
+                  ),
+                  const Column(
+                    children: [
+                      SizedBox(
+                        height: 1,
+                      ),
+                      Icon(
+                        Iconsax.note_1,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  const Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      "Your Financial Tracker",
+                      style: TextStyle(
+                        fontFamily: "SF Pro Display",
+                        fontSize: 23,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 5,
                   ),
                   Icon(
-                    Iconsax.note_1,
-                    size: 20,
+                    Icons.ios_share,
+                    size: 15,
+                    color: Theme.of(context).hintColor.withAlpha(120),
                   ),
                 ],
               ),
               const SizedBox(
-                width: 8,
+                height: 15,
               ),
-              const Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  "Your Financial Tracker",
-                  style: TextStyle(
-                    fontFamily: "SF Pro Display",
-                    fontSize: 23,
-                    fontWeight: FontWeight.w600,
-                  ),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 200),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).hoverColor,
+                  borderRadius: const BorderRadius.all(Radius.circular(12)),
                 ),
-              ),
-              const SizedBox(
-                width: 5,
-              ),
-              Icon(
-                Icons.ios_share,
-                size: 15,
-                color: Theme.of(context).hintColor.withAlpha(120),
+                child: const Placeholder(),
               ),
             ],
           ),
-          const SizedBox(
-            height: 15,
-          ),
-          Container(
-            constraints: const BoxConstraints(maxHeight: 200),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).hoverColor,
-              borderRadius: const BorderRadius.all(Radius.circular(12)),
-            ),
-            child: const Placeholder(),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

@@ -1,10 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:dio/dio.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:walley/root_page.dart';
 import 'package:walley/util/navigation_util.dart';
+import 'package:walley/util/user_util.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,78 +14,50 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  CollectionReference users = FirebaseFirestore.instance.collection('users');
   final GlobalKey<FormState> _form = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final nameController = TextEditingController();
   bool passwordHidden = true;
 
-  attemptRegisterAccount() async {
+  Future<void> attemptRegisterAccount() async {
     if (_form.currentState!.validate()) {
       try {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: emailController.text,
-          password: passwordController.text,
-        );
-
-        await users.doc(emailController.text).set(
-          {
+        final response = await dio.post(
+          '/register',
+          data: jsonEncode({
+            'email': emailController.text,
+            'password': passwordController.text,
             'name': nameController.text,
-          },
+          }),
+          options: Options(headers: {'Content-Type': 'application/json'}),
         );
-
-        if (mounted) {
-          NavigationUtil.navigateToWithoutBack(const RootPage(), context);
-        }
-      } on FirebaseAuthException catch (e) {
-        String msg() {
-          switch (e.code) {
-            case "weak-password":
-              return "Your password needs to be between 8 and 50 characters long.";
-            case "email-already-in-use":
-              return "This email is already used for another account";
-            default:
-              return "An unexpected error occurred. Please report this error code to the developer team: ${e.code}";
+        final data = response.data;
+        if (response.statusCode == 200) {
+          if (mounted) {
+            NavigationUtil.navigateToWithoutBack(const RootPage(), context);
           }
-        }
-
-        if (mounted) {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              content: Text(msg()),
-              title: Row(
-                children: [
-                  const Icon(Icons.error_rounded),
-                  const SizedBox(
-                    width: 15,
-                  ),
-                  Text(
-                    e.code
-                        .split("-")
-                        .map(
-                          (e) =>
-                              e[0].toUpperCase() +
-                              (e.length > 1 ? e.substring(1) : ''),
-                        )
-                        .join(" "),
+        } else {
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                content: Text(data['error'] ?? 'Unknown error'),
+                title: const Text('Error'),
+                actions: [
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('OK'),
                   ),
                 ],
               ),
-              actions: [
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("OK"),
-                ),
-              ],
-            ),
-          );
+            );
+          }
         }
-      } on Exception catch (e) {
+      } catch (e) {
         if (mounted) {
           showDialog(
             context: context,
@@ -93,14 +65,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-              content: Text(
-                "An unexpected issue occurred on our end. Please report this error message to the developer: ${e.toString()}",
-              ),
-              title: const Text("Error"),
+              content: Text('An unexpected issue occurred: \\${e.toString()}'),
+              title: const Text('Error'),
               actions: [
                 ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("OK"),
+                  child: const Text('OK'),
                 ),
               ],
             ),
@@ -114,11 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: SvgPicture.asset(
-          'assets/text_logo.svg',
-          semanticsLabel: 'Text Logo',
-          height: 90,
-        ),
+        title: const Text('Register'),
         centerTitle: true,
       ),
       body: SafeArea(
