@@ -60,11 +60,11 @@ class _DepositTabState extends State<DepositTab> {
               .substring(
                 0,
                 _moneyFieldController.text.length - 2,
-              ) // Remove the d suffix
+              )
               .replaceAll(
                 ".",
                 "",
-              ), // Remove digit seperator
+              ),
         );
 
   @override
@@ -135,7 +135,7 @@ class _DepositTabState extends State<DepositTab> {
                     }
                     setState(
                       () => {},
-                    ); // Rebuild widget to update _moneyFieldController.text
+                    );
                   }
                 },
                 child: Form(
@@ -189,7 +189,7 @@ class _DepositTabState extends State<DepositTab> {
                     onTap: () {
                       for (var item in spendingCategories) {
                         item.isSelected = false;
-                      } // disable every other item
+                      }
                       spendingCategories[index].isSelected = true;
                       setState(() => {});
                     },
@@ -244,7 +244,8 @@ class _DepositTabState extends State<DepositTab> {
                               .firstWhere(
                                 (item) => item.isSelected,
                                 orElse: () => SpendingCategorySelectorItem(
-                                  spendingCategory: SpendingCategory.Uncategorized,
+                                  spendingCategory:
+                                      SpendingCategory.Uncategorized,
                                 ),
                               )
                               .spendingCategory

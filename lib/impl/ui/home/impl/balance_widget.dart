@@ -19,7 +19,8 @@ class _BalanceWidgetState extends State<BalanceWidget> {
     return FutureBuilder(
       future: UserUtil.getSessionUser(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done || snapshot.data == null) {
+        if (snapshot.connectionState != ConnectionState.done ||
+            snapshot.data == null) {
           return const Center(child: CircularProgressIndicator());
         }
         return Expanded(
@@ -50,7 +51,6 @@ class _BalanceWidgetState extends State<BalanceWidget> {
                     if (snapshot.hasError ||
                         snapshot.connectionState != ConnectionState.done ||
                         snapshot.data == null) {
-                      // When data has not yet loaded, use previously loaded data
                       return Expanded(
                         flex: 10,
                         child: FittedBox(
@@ -106,10 +106,10 @@ class _BalanceWidgetState extends State<BalanceWidget> {
                     child: FittedBox(
                       child: Text(
                         (snapshot.connectionState == ConnectionState.done)
-                            ? snapshot.data == 0 // Empty savings
+                            ? snapshot.data == 0
                                 ? "Your savings are empty"
-                                : "${FinanceUtil.vnd.format(snapshot.data)}₫ currently in savings" // Savings available
-                            : "Loading...", // Data not yet loaded
+                                : "${FinanceUtil.vnd.format(snapshot.data)}₫ currently in savings"
+                            : "Loading...",
                         style: TextStyle(
                           fontFamily: "SF Pro Display",
                           fontWeight: FontWeight.w600,
@@ -124,7 +124,7 @@ class _BalanceWidgetState extends State<BalanceWidget> {
                 const Expanded(
                   flex: 1,
                   child: SizedBox.shrink(),
-                ), // Empty expanded widget to proportionate balance number widget
+                ),
               ],
             ),
           ),

@@ -46,7 +46,7 @@ class LessonButton extends StatelessWidget {
           width: 60,
           child: Stack(
             clipBehavior: Clip
-                .none, // Ensure items placed on top of each other are still shown
+                .none,
             children: [
               const SizedBox.shrink(),
               Positioned(
@@ -62,7 +62,7 @@ class LessonButton extends StatelessWidget {
               ),
               icon == null
                   ? const SizedBox
-                      .shrink() // Display empty widget if no icon is configured
+                      .shrink()
                   : Positioned(
                       top: top,
                       bottom: bottom,

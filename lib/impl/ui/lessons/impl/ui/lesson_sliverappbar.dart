@@ -97,13 +97,13 @@ class LessonSliverAppBar extends StatelessWidget {
                         .map(
                           (widget) => Opacity(
                             opacity: 1 -
-                                scrollProgress, // off = 0 -> opa = 1; off = 100; opa = 0
+                                scrollProgress,
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: widget,
                             ),
                           ),
-                        ) // Align all widget to center left
+                        )
                         .toList(),
                   ),
                 ),

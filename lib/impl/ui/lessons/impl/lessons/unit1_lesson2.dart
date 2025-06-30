@@ -111,13 +111,13 @@ class Unit1Lesson2 extends StatelessWidget implements Lesson {
                                 }
                               }).toList(),
                             ),
-                          ) // Add padding to all text widgets inside table
+                          )
                           .toList(),
                     ),
                   ),
                   SizedBox(
                     height: 40,
-                    width: double.infinity, // expand all width
+                    width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {},
                       style: ButtonStyle(

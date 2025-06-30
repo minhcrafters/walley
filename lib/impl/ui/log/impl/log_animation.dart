@@ -106,7 +106,7 @@ class _LogAnimationState extends State<LogAnimation>
               type: MaterialType.canvas,
               color: Colors.black.withOpacity(
                 _opacityBackgroundAnimation.value,
-              ), // max opacity = 0.5
+              ),
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.bottomCenter,
@@ -158,7 +158,6 @@ class _LogAnimationState extends State<LogAnimation>
                               ) {
                                 if (!isConnectionPending &&
                                     !playedSuccessSound) {
-                                  // animation done
                                   playedSuccessSound = true;
                                   _tickOpacityAnimationController.forward();
                                   HapticFeedback.mediumImpact();

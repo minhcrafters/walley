@@ -22,7 +22,8 @@ class _HomePageState extends State<HomePage> {
     return FutureBuilder(
       future: UserUtil.getSessionUser(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done || snapshot.data == null) {
+        if (snapshot.connectionState != ConnectionState.done ||
+            snapshot.data == null) {
           return const Center(child: CircularProgressIndicator());
         }
         final user = snapshot.data;
@@ -59,7 +60,6 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 15),
               Container(
                 constraints: const BoxConstraints(maxHeight: 100),
-                // ignore: prefer_const_constructors
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -72,47 +72,6 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 15),
               const Row(
                 children: [
-                  /*Expanded(
-                child: ElevatedButton(
-                  onPressed: () => {},
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Iconsax.add),
-                      SizedBox(width: 10),
-                      Text(
-                        "Deposit",
-                        style: TextStyle(
-                          fontFamily: "SF Pro Display",
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(
-                width: 15,
-              ),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => {},
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Iconsax.minus),
-                      SizedBox(width: 10),
-                      Text(
-                        "Expend",
-                        style: TextStyle(
-                          fontFamily: "SF Pro Display",
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),*/
                 ],
               ),
               const SizedBox(

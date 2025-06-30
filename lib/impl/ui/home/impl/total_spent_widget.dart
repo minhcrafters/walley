@@ -223,7 +223,8 @@ class TotalSpentWidget extends StatelessWidget {
                           );
                         }
                         int? rawMoneyValue = int.tryParse(
-                            data.data!["data"]["amount"].toString(),);
+                          data.data!["data"]["amount"].toString(),
+                        );
                         String time = "";
                         try {
                           time = DateFormat("jm")

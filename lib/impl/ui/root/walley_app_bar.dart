@@ -3,7 +3,6 @@ import 'package:walley/impl/ui/root/walley_navigation_bar.dart';
 import 'package:walley/impl/ui/user/user_page.dart';
 import 'package:walley/main.dart';
 
-// ignore: must_be_immutable
 class WalleyAppBar extends StatelessWidget {
   WalleyNavigationBar walleyNavigationBar;
 
@@ -58,7 +57,7 @@ class WalleyAppBar extends StatelessWidget {
                         children: [
                           const SizedBox(
                             height: 6,
-                          ), // Adjust the height to move the text down
+                          ),
                           Text(
                             (Walley.beta && walleyNavigationBar.isHomeScreen())
                                 ? "beta"
@@ -80,18 +79,6 @@ class WalleyAppBar extends StatelessWidget {
                 context,
                 MaterialPageRoute(builder: (context) => const UserPage()),
               ),
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute<ProfileScreen>(
-              //     builder: (context) => ProfileScreen(
-              //       actions: [
-              //         SignedOutAction((context) {
-              //           Navigator.of(context).pop();
-              //         })
-              //       ],
-              //     ),
-              //   ),
-              // )
               child: const CircleAvatar(
                 radius: 20,
                 backgroundImage: AssetImage('assets/placeholder_avatar.jpg'),

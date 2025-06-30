@@ -17,7 +17,6 @@ class LogPage extends StatefulWidget implements AbstractWalleyPage {
 class _LogPageState extends State<LogPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    // TODO: at option to change date and time of entry
     return DefaultTabController(
       length: 2,
       child: Scaffold(

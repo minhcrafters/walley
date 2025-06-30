@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:walley/gobal.dart';
+import 'package:walley/global.dart';
 import 'package:walley/impl/auth/login_screen.dart';
 import 'package:walley/util/color_util.dart';
 import 'package:walley/util/user_defaults_util.dart';

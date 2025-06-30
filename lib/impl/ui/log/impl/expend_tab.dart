@@ -60,11 +60,11 @@ class _ExpendTabState extends State<ExpendTab> {
               .substring(
                 0,
                 _moneyFieldController.text.length - 2,
-              ) // Remove the d suffix
+              )
               .replaceAll(
                 ".",
                 "",
-              ), // Remove digit seperator
+              ),
         );
 
   String? moneyFieldErrorText;
@@ -197,7 +197,7 @@ class _ExpendTabState extends State<ExpendTab> {
                     onTap: () {
                       for (var item in spendingCategories) {
                         item.isSelected = false;
-                      } // disable every other item
+                      }
                       spendingCategories[index].isSelected = true;
                       setState(() => {});
                     },
@@ -271,7 +271,7 @@ class _ExpendTabState extends State<ExpendTab> {
                             },
                           );
                         })
-                      : null, // grey out button if fields not entered correctly
+                      : null,
                   style: ButtonStyle(
                     shape: WidgetStateProperty.all(
                       RoundedRectangleBorder(

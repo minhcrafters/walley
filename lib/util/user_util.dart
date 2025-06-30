@@ -38,36 +38,26 @@ class UserUtil {
     return null;
   }
 
-  /// A utility class for retrieving user documents from Firestore.
   static Future<Map<String, dynamic>?> getUserDocuments() async {
-    final user = await getSessionUser();
-    if (user == null || user['email'] == null) return null;
-    final response = await dio.get('/user', queryParameters: {'email': user['email']});
+    final response = await dio.get('/user');
     if (response.statusCode == 200) {
       return response.data;
     }
     return null;
   }
 
-  /// Reads a field in the user documents and creates the field if it doesn't exist.
-  ///
-  /// [field] is the name of the field to read/create.
-  ///
-  /// Returns a [Future] that completes with the value of the field.
   static Future<dynamic> readOrCreateField(
     String field,
     dynamic defaultValue,
   ) async {
     final userData = await getUserDocuments();
+
     if (userData != null && userData.containsKey(field)) {
       return userData[field];
     } else {
-      final user = await getSessionUser();
-      if (user == null || user['email'] == null) return defaultValue;
-      // Create the field with the default value
       await dio.post(
         '/user/update',
-        data: jsonEncode({'email': user['email'], field: defaultValue}),
+        data: jsonEncode({field: defaultValue}),
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
       return defaultValue;
@@ -81,12 +71,6 @@ class UserUtil {
     return userData == null ? null : userData[field];
   }
 
-  /// Modifies a JSON document in the database and creates an empty JSON if it doesn't exist.
-  ///
-  /// [jsonPath] is the path to the JSON document.
-  /// [modifier] is a function that takes the current JSON data as input and returns the modified JSON data.
-  ///
-  /// Returns a [Future] that completes with the modified JSON data.
   static Future<Map<String, dynamic>> modifyJsonDocument(
     String jsonPath,
     Map<String, dynamic> Function(Map<String, dynamic> currentData) modifier,
@@ -171,7 +155,7 @@ class UserUtil {
               transactionDate.year != comparingDate.year ||
               (int.tryParse(value['amount'].toString()) ?? 0) > 0;
         },
-      ); // filter out transactions in other days
+      );
       if (transactions.isEmpty) {
         return 0;
       }
@@ -182,7 +166,7 @@ class UserUtil {
             (int.tryParse(entry.value['amount'].toString()) ?? 0);
         return sum + balanceChange.abs();
       });
-      return total; // return the calculated total
+      return total;
     } else {
       return 0;
     }
@@ -232,7 +216,8 @@ class UserUtil {
   }
 
   static Future<Map<String, dynamic>?> getUserById(int id) async {
-    final response = await dio.get('/user/get_by_id', queryParameters: {'id': id});
+    final response =
+        await dio.get('/user/get_by_id', queryParameters: {'id': id});
     if (response.statusCode == 200) {
       return response.data;
     }
@@ -260,7 +245,8 @@ class UserUtil {
   }
 
   static Future<Map<String, dynamic>?> getTransactionById(int id) async {
-    final response = await dio.get('/transaction/get', queryParameters: {'id': id});
+    final response =
+        await dio.get('/transaction/get', queryParameters: {'id': id});
     if (response.statusCode == 200) {
       return response.data;
     }
@@ -270,7 +256,8 @@ class UserUtil {
   static Future<Map<String, dynamic>?> getSummary() async {
     final user = await getSessionUser();
     if (user == null || user['email'] == null) return null;
-    final response = await dio.get('/summary', queryParameters: {'email': user['email']});
+    final response =
+        await dio.get('/summary', queryParameters: {'email': user['email']});
     if (response.statusCode == 200) {
       return response.data;
     }

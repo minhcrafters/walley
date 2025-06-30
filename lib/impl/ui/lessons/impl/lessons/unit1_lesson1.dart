@@ -207,7 +207,7 @@ class Unit1Lesson1 extends StatelessWidget implements Lesson {
                   ),
                   SizedBox(
                     height: 40,
-                    width: double.infinity, // expand all width
+                    width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {},
                       style: ButtonStyle(

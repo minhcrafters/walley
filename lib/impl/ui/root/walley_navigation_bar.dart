@@ -5,7 +5,6 @@ import 'package:walley/impl/ui/lessons/lessons_page.dart';
 import 'package:walley/impl/ui/log/log_page.dart';
 import 'package:walley/impl/ui/abstract_walley_page.dart';
 
-//ignore: must_be_immutable
 class WalleyNavigationBar extends StatelessWidget {
   var _currentIndex = 0;
   Function onTabChange;

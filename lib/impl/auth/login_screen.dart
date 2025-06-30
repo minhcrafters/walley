@@ -21,7 +21,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
   bool passwordHidden = true;
 
-  // Add these widget fields for logo display
   final Widget image =
       SvgPicture.asset('assets/transparent_logo.svg', fit: BoxFit.contain);
   final Widget textLogo =
@@ -40,7 +39,6 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         final data = response.data;
         if (response.statusCode == 200) {
-          // Store token and set up Dio
           UserUtil.sessionToken = data['token'];
           UserUtil.setupDio();
           if (mounted) {
@@ -225,8 +223,6 @@ class _LoginScreenState extends State<LoginScreen> {
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               if (constraints.maxHeight > 500) {
-                // big screen
-
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,8 +241,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 );
               } else {
-                // small screen
-
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,4 +273,3 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 }
-// Remove or update references to RegisterScreen, image, and textLogo as needed in the UI code.
